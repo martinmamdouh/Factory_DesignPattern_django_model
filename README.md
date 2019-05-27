@@ -1,0 +1,1 @@
+# Factory_DesignPattern_django_model
