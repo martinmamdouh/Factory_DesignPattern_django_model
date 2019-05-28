@@ -9,7 +9,7 @@ class Account(models.Model):
     account_id=models.BigIntegerField('Account ID',blank=False,unique=True)
     account_name=models.CharField('Account Name',max_length=100,blank=False,unique=True)
     operator_account_id=models.BigIntegerField('Account ID',blank=False,unique=True)
-
+    
     class Meta:
         db_table = 'account_tb'
 

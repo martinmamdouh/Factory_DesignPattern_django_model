@@ -22,6 +22,7 @@ def is_valid(obj):
 		#and return nothing or exception 
 		obj.full_clean()
 
+
 	except Exception as e:
 		error_logger(e)
 		isValid =False
@@ -55,6 +56,7 @@ class Factory:
 
 		elif table=='APN':
 			return self._dataToAPN
+			
 		elif table=='AccessLinkAccount':
 			return self._dataToAccessLinkAccount
 			
@@ -83,7 +85,7 @@ class Factory:
 			apn_name=data['apn_name'],
 			)
 
-		return apn
+			return apn
 
 
 	def _dataToAccessLinkAccount(self,data):
@@ -129,27 +131,80 @@ class Factory:
 
 
 #-----------------------take the instance from the factory validate it and save --------------------------------------------------
-def create_row_of(request,table,**data):
+#----------------------- DAO Part which is the only one responsible to write in database.-------------------------------------
+def create_row_of(table,**data):
 
 	factory=Factory()
 	tableInstance=factory.generate_instance(table,data)
 
 	if tableInstance and  is_valid(tableInstance):
-		tableInstance.save()
-		pk=tableInstance.pk
-		return HttpResponse('success with pk ='+str(pk))
-	else:
-		return HttpResponse('error check the log')
+		newRow=tableInstance.save()
 
-#def add_manyToManyRelation():
-#	relationDetails={
-#	table1:{name:'Account','searchKey':operator_account_id,'value':'value'},
-#	table2:{name:'APN','searchKey':apn_name,'value':'value','relation_column_name':'relation_column_name'}
-#	}
-#t1=relationDetails['table1']
-#t2=relationDetails['table2']
-#t1_Model_name=t1['name']
-#t2_Model_name=t2['name']
-#t1_instance=t1_Model_name.objects.get(t1[searchKey]=t1['value'])
-#t2_instance=t2_Model_name.objects.get(t2[searchKey]=t2['value'])
-#t1_instance.t1[relation_column_name].add(t2_instance)
+		return newRow
+	else:
+		return None
+
+def add_manyToManyRelation(relationDetails):# :RelationDetailsInterface
+
+	parentTableInstance=relationDetails.parentTableInstance.
+	childTableInstance=relationDetails.childTableInstance
+	childRelationColName=relationDetails.childRelationColName
+
+	try:
+		newRelation=childTableInstance.childRelationColName.add(parentTableInstance)
+	except Exception as e:
+		error_logger(e)
+		newRelation=None
+	finally:
+		return newRelation
+
+
+def get_row_or_None(table,pk):
+	try:
+		instance=table.objects.get(pk=pk)
+
+	except DoesNotExist as e:
+		error_logger(e)
+		instance=None
+
+	finally:
+		return  instance
+
+
+
+class RelationDetailsInterface()
+	def __init__(self,parentTableInstance,childTableInstance,childRelationColName):
+		self.parentTableInstance=parentTableInstance;
+		self.childTableInstance=childTableInstance;
+		self.childRelationColName=childRelationColName;
+
+
+
+
+
+class ApnBL:
+
+	def __init__(self,data):
+		self.data=data
+
+	def validat(self,data):
+		pass
+
+	def create_new(self):
+
+		apn=create_row_of('APN',data)
+		account=get_row_or_None('Account',self.data['account_pk'])
+		if account:
+			relationDetails=RelationDetailsInterface(account,apn,'account')
+			newRelation=add_manyToManyRelation(relationDetails)
+		if not account or not newRelation :
+			apn.delete()
+			return False
+		return True 
+
+
+
+	
+
+
+
